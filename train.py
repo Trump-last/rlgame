@@ -3,12 +3,15 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 import os
 
+from centered_reward_wrapper import CenteredLandingWrapper
+
 
 def main():
     os.makedirs("models", exist_ok=True)
     os.makedirs("logs", exist_ok=True)
 
     env = gym.make("LunarLander-v3")
+    env = CenteredLandingWrapper(env, penalty_coeff=0.1)
     env = Monitor(env, "logs/monitor")
 
     model = PPO(

@@ -5,6 +5,8 @@ import imageio
 import numpy as np
 from stable_baselines3 import PPO
 
+from centered_reward_wrapper import CenteredLandingWrapper
+
 
 def record_episode(env, policy, max_steps=1000):
     frames = []
@@ -37,6 +39,7 @@ def save_gif(frames, path, fps=30):
 
 def main():
     env = gym.make("LunarLander-v3", render_mode="rgb_array")
+    env = CenteredLandingWrapper(env, penalty_coeff=0.1)
 
     # Untrained (random) policy
     def random_policy(obs):

@@ -1,6 +1,8 @@
-# PPO LunarLander-v2 Demo
+# PPO LunarLander-v3 Demo
 
-基于 PPO（Proximal Policy Optimization）算法的强化学习演示项目，使用 [Gymnasium](https://gymnasium.farama.org/) 的 LunarLander-v2 环境。
+基于 PPO（Proximal Policy Optimization）算法的强化学习演示项目，使用 [Gymnasium](https://gymnasium.farama.org/) 的 LunarLander-v3 环境。
+
+> 在原始 reward 基础上增加了**居中着陆惩罚**：距离着陆台中心越远，每步扣分越多。
 
 ## 效果
 
@@ -12,10 +14,11 @@
 
 ```
 .
-├── train.py           # GPU 训练脚本
-├── plot_rewards.py    # 训练后绘制 reward 曲线
-├── visualize.py       # CPU 推理 + 录制对比动画
-├── requirements.txt   # 依赖
+├── train.py                      # GPU 训练脚本
+├── centered_reward_wrapper.py    # 自定义 reward：居中着陆惩罚
+├── plot_rewards.py               # 训练后绘制 reward 曲线
+├── visualize.py                  # CPU 推理 + 录制对比动画
+├── requirements.txt              # 依赖
 ├── models/            # 模型保存目录
 ├── logs/              # 训练日志（monitor.csv）
 ├── plots/             # reward 曲线图
@@ -81,6 +84,18 @@ python visualize.py
 - `gifs/trained.gif` — 训练后策略（稳定着陆）
 
 使用 `render_mode="rgb_array"` 渲染，**不依赖 GUI**，WSL / headless 环境也能运行。
+
+## 自定义 Reward 设计
+
+标准 LunarLander 的奖励函数不关心横向位置——只要能安全着陆（两腿接触、速度低、角度直），落在着陆台左边、右边或正中间得分完全一样。
+
+本项目通过 `CenteredLandingWrapper` 增加了**居中惩罚**：
+
+```python
+每步额外惩罚 = -0.1 * |火箭x坐标 - 着陆台中心x坐标|
+```
+
+这样策略在优先"活着着陆"的同时，会尽量往两个旗子中间落。
 
 ## 技术栈
 
