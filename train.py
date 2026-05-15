@@ -8,7 +8,7 @@ def main():
     os.makedirs("models", exist_ok=True)
     os.makedirs("logs", exist_ok=True)
 
-    env = gym.make("LunarLander-v2")
+    env = gym.make("LunarLander-v3")
     env = Monitor(env, "logs/monitor")
 
     model = PPO(

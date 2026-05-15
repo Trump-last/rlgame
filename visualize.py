@@ -36,7 +36,7 @@ def save_gif(frames, path, fps=30):
 
 
 def main():
-    env = gym.make("LunarLander-v2", render_mode="rgb_array")
+    env = gym.make("LunarLander-v3", render_mode="rgb_array")
 
     # Untrained (random) policy
     def random_policy(obs):
