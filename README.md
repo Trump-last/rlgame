@@ -14,7 +14,8 @@
 
 ```
 .
-├── train.py                      # GPU 训练脚本
+├── train_phase1.py               # 第一阶段：学习基本着陆（无居中惩罚）
+├── train_phase2.py               # 第二阶段：fine-tune 居中着陆（加载 phase1 模型）
 ├── centered_reward_wrapper.py    # 自定义 reward：居中着陆惩罚
 ├── plot_rewards.py               # 训练后绘制 reward 曲线
 ├── visualize.py                  # CPU 推理 + 录制对比动画
@@ -36,33 +37,28 @@ pip install -r requirements.txt
 
 ## 使用流程
 
-### 1. 训练（GPU）
+### 1. 第一阶段：学习基本着陆（GPU）
 
 ```bash
-python train.py
+python train_phase1.py
 ```
 
+- 不加居中惩罚，先让策略学会"安全着陆"
 - 自动检测并使用 GPU
-- 训练约 10-15 分钟（100 万步）
-- 目标 mean reward：150+
+- Early stopping：最近 10 集 mean reward >= **150** 自动停止
+- 模型保存至 `models/ppo_lunarlander_phase1.zip`
+
+### 2. 第二阶段：Fine-tune 居中着陆（GPU）
+
+```bash
+python train_phase2.py
+```
+
+- 加载 phase1 模型，加上**弱居中惩罚**（coeff=0.03）
+- Early stopping：最近 10 集 mean reward >= **200** 自动停止
 - 模型保存至 `models/ppo_lunarlander.zip`
-- 训练日志写入 `logs/monitor.csv`
 
-PPO 固定超参：
-
-| 参数 | 值 |
-|------|-----|
-| n_steps | 2048 |
-| batch_size | 64 |
-| n_epochs | 10 |
-| learning_rate | 2.5e-4 |
-| gamma | 0.99 |
-| gae_lambda | 0.95 |
-| clip_range | 0.2 |
-| ent_coef | 0.01 |
-| total_timesteps | 1,000,000 |
-
-### 2. 绘制 Reward 曲线
+### 3. 绘制 Reward 曲线
 
 ```bash
 python plot_rewards.py
@@ -71,9 +67,9 @@ python plot_rewards.py
 输出 `plots/rewards.png`，包含：
 - 每集 reward（半透明）
 - 100 集移动平均线（实线）
-- 150 目标线（虚线）
+- 150 / 200 目标线（虚线）
 
-### 3. 录制对比动画（CPU）
+### 4. 录制对比动画（CPU）
 
 ```bash
 python visualize.py
@@ -81,7 +77,7 @@ python visualize.py
 
 输出：
 - `gifs/untrained.gif` — 随机策略（坠毁表演）
-- `gifs/trained.gif` — 训练后策略（稳定着陆）
+- `gifs/trained.gif` — 训练后策略（居中稳定着陆）
 
 使用 `render_mode="rgb_array"` 渲染，**不依赖 GUI**，WSL / headless 环境也能运行。
 
@@ -92,7 +88,8 @@ python visualize.py
 本项目通过 `CenteredLandingWrapper` 增加了**居中惩罚**：
 
 ```python
-每步额外惩罚 = -0.1 * |火箭x坐标 - 着陆台中心x坐标|
+# Phase 2 使用较弱的惩罚（0.03），避免策略被"吓"住不敢着陆
+每步额外惩罚 = -0.03 * |火箭x坐标 - 着陆台中心x坐标|
 ```
 
 这样策略在优先"活着着陆"的同时，会尽量往两个旗子中间落。
