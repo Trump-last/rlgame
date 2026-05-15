@@ -14,6 +14,7 @@
 
 ```
 .
+├── train.py                      # 一键训练（自动执行 phase1 + phase2）
 ├── train_phase1.py               # 第一阶段：学习基本着陆（无居中惩罚）
 ├── train_phase2.py               # 第二阶段：fine-tune 居中着陆（加载 phase1 模型）
 ├── centered_reward_wrapper.py    # 自定义 reward：居中着陆惩罚
@@ -37,26 +38,27 @@ pip install -r requirements.txt
 
 ## 使用流程
 
-### 1. 第一阶段：学习基本着陆（GPU）
+### 训练（GPU）
 
 ```bash
-python train_phase1.py
+python train.py
 ```
 
-- 不加居中惩罚，先让策略学会"安全着陆"
-- 自动检测并使用 GPU
-- Early stopping：最近 10 集 mean reward >= **150** 自动停止
-- 模型保存至 `models/ppo_lunarlander_phase1.zip`
+一键完成两阶段训练：
 
-### 2. 第二阶段：Fine-tune 居中着陆（GPU）
+**Phase 1**：不加居中惩罚，先让策略学会"安全着陆"
+- Early stopping：最近 10 集 mean reward >= **150**
+- 中间模型保存至 `models/ppo_lunarlander_phase1.zip`
 
+**Phase 2**：加载 phase1 模型，加上弱居中惩罚（coeff=0.03）fine-tune
+- Early stopping：最近 10 集 mean reward >= **200**
+- 最终模型保存至 `models/ppo_lunarlander.zip`
+
+如需单独运行某一阶段：
 ```bash
-python train_phase2.py
+python train_phase1.py  # 仅第一阶段
+python train_phase2.py  # 仅第二阶段（需先完成第一阶段）
 ```
-
-- 加载 phase1 模型，加上**弱居中惩罚**（coeff=0.03）
-- Early stopping：最近 10 集 mean reward >= **200** 自动停止
-- 模型保存至 `models/ppo_lunarlander.zip`
 
 ### 3. 绘制 Reward 曲线
 
