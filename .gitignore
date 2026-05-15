@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+models/*.zip
+logs/*.csv
+plots/*.png
+gifs/*.gif
